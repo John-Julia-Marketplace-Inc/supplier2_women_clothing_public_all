@@ -46,20 +46,20 @@ jobs:
             export PASSWORD="${{ secrets.PASSWORD }}"
             python /home/runner/work/supplier2_women_clothing_public_all/supplier2_women_clothing_public_all/get_data.py
 
-      - name: Commit changes from update.py
-        run: |
-          cd private_repo
-          git config --local user.name "GitHub Action"
-          git config --local user.email "action@github.com"
-          git pull origin master --no-edit
-          git add .
-          git commit -m "Commit changes from update.py"
-          git push
+      # - name: Commit changes from update.py
+      #   run: |
+      #     cd private_repo
+      #     git config --local user.name "GitHub Action"
+      #     git config --local user.email "action@github.com"
+      #     git pull origin master --no-edit
+      #     git add .
+      #     git commit -m "Commit changes from update.py"
+      #     git push
       
-      - name: Trigger Public Repo Workflow
-        run: |
-          curl -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.PUBLIC_PAT }}" \
-          https://api.github.com/repos/${{ secrets.PUBLIC_REPO_URL }}/dispatches \
-          -d '{"event_type": "process_data"}'
+      # - name: Trigger Public Repo Workflow
+      #   run: |
+      #     curl -X POST \
+      #     -H "Accept: application/vnd.github+json" \
+      #     -H "Authorization: Bearer ${{ secrets.PUBLIC_PAT }}" \
+      #     https://api.github.com/repos/${{ secrets.PUBLIC_REPO_URL }}/dispatches \
+      #     -d '{"event_type": "process_data"}'
