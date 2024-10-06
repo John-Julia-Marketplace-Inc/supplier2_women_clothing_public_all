@@ -56,10 +56,10 @@ jobs:
           git commit -m "Commit changes from update.py"
           git push
       
-      # - name: Trigger Public Repo Workflow
-      #   run: |
-      #     curl -X POST \
-      #     -H "Accept: application/vnd.github+json" \
-      #     -H "Authorization: Bearer ${{ secrets.PUBLIC_PAT }}" \
-      #     https://api.github.com/repos/${{ secrets.PUBLIC_REPO_URL }}/dispatches \
-      #     -d '{"event_type": "process_data"}'
+      - name: Trigger Public Repo Workflow
+        run: |
+          curl -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.PUBLIC_PAT }}" \
+          https://api.github.com/repos/${{ secrets.PUBLIC_REPO_URL }}/dispatches \
+          -d '{"event_type": "process_data"}'
