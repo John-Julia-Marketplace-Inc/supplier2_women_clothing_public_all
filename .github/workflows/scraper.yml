@@ -46,15 +46,15 @@ jobs:
             export PASSWORD="${{ secrets.PASSWORD }}"
             python /home/runner/work/supplier2_women_clothing_public_all/supplier2_women_clothing_public_all/get_data.py
 
-      # - name: Commit changes from update.py
-      #   run: |
-      #     cd private_repo
-      #     git config --local user.name "GitHub Action"
-      #     git config --local user.email "action@github.com"
-      #     git pull origin master --no-edit
-      #     git add .
-      #     git commit -m "Commit changes from update.py"
-      #     git push
+      - name: Commit changes from update.py
+        run: |
+          cd private_repo
+          git config --local user.name "GitHub Action"
+          git config --local user.email "action@github.com"
+          git pull origin master --no-edit
+          git add .
+          git commit -m "Commit changes from update.py"
+          git push
       
       # - name: Trigger Public Repo Workflow
       #   run: |
