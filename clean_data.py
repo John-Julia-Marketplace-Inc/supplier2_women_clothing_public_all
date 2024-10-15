@@ -2,7 +2,7 @@ import os, re
 import numpy as np
 import pandas as pd
 
-filename = 'clean_data/new_clothes_cleaned.csv'
+filename = 'private_repo/clean_data/new_clothes_cleaned.csv'
 
 if os.path.exists(filename):
     os.remove(filename)
