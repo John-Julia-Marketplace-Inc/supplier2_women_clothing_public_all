@@ -90,38 +90,70 @@ def get_size_and_fit_details(driver):
 
 
 def get_table_data(driver):
-    table_data = []
+    # Try first structure
+    table_data_v1 = []
 
     try:
-        # Locate the table body containing the items
-        tbody = driver.find_element(By.CSS_SELECTOR, 'tbody.cart.item')
-        
-        # Iterate over each row in the table
-        rows = tbody.find_elements(By.CSS_SELECTOR, 'tr.item-info')
+        # Locate the table body containing the items (Structure 1)
+        tbody_v1 = driver.find_element(By.CSS_SELECTOR, 'tbody.cart.item')
 
-        for row in rows:
-            # Extract the size from the <span class="attr-label">
+        # Iterate over each row in the table (Structure 1)
+        rows_v1 = tbody_v1.find_elements(By.CSS_SELECTOR, 'tr.item-info')
+
+        for row in rows_v1:
+            # Extract the size, quantity, price, and old price from the appropriate columns
             size = row.find_element(By.CSS_SELECTOR, 'td.first-attr span.attr-label').text
-
-            # Extract the quantity from the <input> element
-            quantity = row.find_element(By.XPATH, '/html/body/div[1]/main/div[2]/div/div[2]/div[2]/div/div[4]/form/div[1]/div/div[2]/table/tbody/tr[1]/td[2]').text
-
-            # Extract the price from the <div> elements
+            quantity = row.find_element(By.CSS_SELECTOR, 'td:nth-of-type(2)').text
             price = row.find_element(By.CSS_SELECTOR, 'td:nth-of-type(3) div:first-of-type').text.strip()
             old_price = row.find_element(By.CSS_SELECTOR, 'td:nth-of-type(3) div.unit-old').text.strip()
 
-            # Append the extracted data to the list
-            table_data.append({
+            # Append data to the list for the first structure
+            table_data_v1.append({
                 'Size': size,
                 'Quantity': quantity,
                 'Price': price,
                 'Old Price': old_price
             })
-    
     except Exception as e:
-        print(f"Error getting table data: ")
+        print(f"Structure 1 not found or has issues: {e}")
     
-    return table_data
+    # If first structure has data, return it
+    if table_data_v1:
+        return table_data_v1
+
+    # Try second structure if first structure doesn't have data
+    table_data_v2 = []
+    
+    try:
+        # Locate the table body containing the items (Structure 2)
+        tbody_v2 = driver.find_element(By.CSS_SELECTOR, 'tbody.cart.item')
+
+        # Iterate over each row in the table (Structure 2)
+        rows_v2 = tbody_v2.find_elements(By.CSS_SELECTOR, 'tr.item-info')
+
+        for row in rows_v2:
+            # Extract the size, quantity, price, and old price from the appropriate columns
+            size = row.find_element(By.CSS_SELECTOR, 'td.first-attr span.attr-label').text
+            quantity = row.find_element(By.CSS_SELECTOR, 'td:nth-of-type(2)').text
+            price = row.find_element(By.CSS_SELECTOR, 'td:nth-of-type(3) div:first-of-type').text.strip()
+            old_price = row.find_element(By.CSS_SELECTOR, 'td:nth-of-type(3) div.unit-old').text.strip()
+
+            # Append data to the list for the second structure
+            table_data_v2.append({
+                'Size': size,
+                'Quantity': quantity,
+                'Price': price,
+                'Old Price': old_price
+            })
+    except Exception as e:
+        print(f"Structure 2 not found or has issues: {e}")
+    
+    # Return the second structure's data if it exists
+    if table_data_v2:
+        return table_data_v2
+
+    # If neither structure has data, return an empty list
+    return []
 
 
 def get_general_info(driver):
@@ -189,14 +221,21 @@ def get_general_info(driver):
     except Exception as e:
         print(f"Error finding product code: ")
 
+    stock_status = 'In Stock'
+    try:
+        stock_status = driver.find_element(By.CSS_SELECTOR, 'div.outofstockpdp').text
+        stock_status = 'OUT OF STOCK'
+    except:
+        pass
+
     size_and_fit_info, details_info = get_size_and_fit_details(driver)
     sizes_and_quantities = get_table_data(driver)
 
         
     if discounted_cost != 'N/A':    
-        return product_name, brand_name, product_image_links_str, discounted_cost, not_discounted_cost, product_code, details_info, size_and_fit_info, description, sizes_and_quantities, collection, breadcrumbs
+        return product_name, brand_name, product_image_links_str, discounted_cost, not_discounted_cost, product_code, details_info, size_and_fit_info, description, sizes_and_quantities, collection, breadcrumbs, stock_status
     else:
-        return product_name, brand_name, product_image_links_str, price, price, product_code, details_info, size_and_fit_info, description, sizes_and_quantities, collection, breadcrumbs
+        return product_name, brand_name, product_image_links_str, price, price, product_code, details_info, size_and_fit_info, description, sizes_and_quantities, collection, breadcrumbs, stock_status
 
 
 def parser(url, collection, pages):
@@ -209,7 +248,7 @@ def parser(url, collection, pages):
         # driver = webdriver.Chrome()
         
         driver.get(url)
-        time.sleep(5)
+        time.sleep(2)
 
         username_field = driver.find_element(By.NAME, 'login[username]')
         password_field = driver.find_element(By.NAME, 'login[password]')
@@ -264,7 +303,7 @@ def parser(url, collection, pages):
                         EC.presence_of_element_located((By.CSS_SELECTOR, 'div.single-image img'))
                     )
                     
-                    product_name, brand_name, product_image_links_str, discounted_cost, not_discounted_cost, product_code, details, size_and_fit, description, sizes_and_quantities, collection, breadcrumbs = get_general_info(driver)
+                    product_name, brand_name, product_image_links_str, discounted_cost, not_discounted_cost, product_code, details, size_and_fit, description, sizes_and_quantities, collection, breadcrumbs, stock_status = get_general_info(driver)
                     
                     sizes_and_quantities = preprocess_sizes_quantities(sizes_and_quantities)
                     
@@ -280,6 +319,7 @@ def parser(url, collection, pages):
                         'Description': [description],
                         'Collection': [collection],
                         'Sizes and Quantities': [sizes_and_quantities],
+                        'Stock Status': [stock_status],
                         'Images': product_image_links_str
                     }).to_csv(filename, header=not os.path.exists(filename), mode='a', index=False)
                     
@@ -332,7 +372,7 @@ if __name__ == "__main__":
     urls = [
         f'{SUPPLIER_URL}/women/clothing.html',
     ] * 9
-
+    
     with ThreadPoolExecutor(max_workers=6) as executor:
         futures = [executor.submit(parser, url, collection, page) for url, collection, page in zip(urls, collections, pages)]
         for future in as_completed(futures):

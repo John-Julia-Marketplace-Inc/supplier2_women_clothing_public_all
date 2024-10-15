@@ -2,7 +2,7 @@ import os, re
 import numpy as np
 import pandas as pd
 
-filename = 'private_repo/clean_data/new_clothes_cleaned.csv'
+filename = 'clean_data/new_clothes_cleaned.csv'
 
 if os.path.exists(filename):
     os.remove(filename)
@@ -303,7 +303,7 @@ def main():
         
         if sizing_standard == 'OS':
             sizes = 'OS'
-            quantities = 2
+            # quantities = 2
             
         description = (
             ''
@@ -311,19 +311,20 @@ def main():
             else f"<p>{row['Description']}</p>"
         )
         
+        inventory = row['Stock Status']
         
         if color is None:
             color = find_color(description, color_supplier)
             
         try:
             retail_price = float(row['Discounted Price'].replace(',', '').replace('€', ''))
-            inventory = 'In Stock'
+            # inventory = 'In Stock'
         except AttributeError:
             retail_price = 0
-            inventory = 'OUT OF STOCK'
+            # inventory = 'OUT OF STOCK'
         except ValueError:
             retail_price = 0
-            inventory = 'OUT OF STOCK'
+            # inventory = 'OUT OF STOCK'
         
         try:
             compare_prices = float(row['Retail Price'].replace(',', '').replace('€', ''))
@@ -334,7 +335,10 @@ def main():
                 compare_prices = 0
         except ValueError:
             compare_prices = 0
-            inventory = 'OUT OF STOCK'
+            # inventory = 'OUT OF STOCK'
+        
+        if inventory.lower() == 'out of stock':
+            qty = 0
                 
         if sizing_standard is None:
             continue
@@ -466,6 +470,15 @@ def fix_qty(row):
 
 
 def final_preprocessing():
+    data = pd.read_csv('private_repo/clean_data/new_clothes.csv')
+    out_of_stock = data[data['Stock Status'] == 'OUT OF STOCK']
+    out_of_stock.to_csv('private_repo/clean_data/zero_inventory2.csv')
+    
+    print('Number of out of stock entries:', len(out_of_stock))
+    
+    data.drop(index=out_of_stock.index, inplace=True)
+    data.to_csv('private_repo/clean_data/new_clothes.csv')
+    
     main()
     
     data = additional_preprocessing()
@@ -494,3 +507,4 @@ def final_preprocessing():
     
     data.to_csv('private_repo/clean_data/old_clothes_cleaned.csv', index=False)
     data.to_csv('private_repo/clean_data/new_clothes_cleaned.csv', index=False)
+    
